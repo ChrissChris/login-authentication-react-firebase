@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import firebase from './firebase.js'
+import Login from './Login.js'
+import Hero from './Hero'
 import './App.css'
 
 function App() {
@@ -8,9 +10,20 @@ function App() {
   const [password, setPassword] = useState('')
   const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  const [hasAccount, sethasAccount] = useState(false)
+  const [hasAccount, setHasAccount] = useState(false)
+
+  const clearInput = () => {
+    setEmail('')
+    setPassword('')
+  }
+
+  const clearErrors = () => {
+    setEmailError('')
+    setPasswordError('')
+  }
 
   const handleLogin = () => {
+    clearErrors()
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
@@ -24,11 +37,13 @@ function App() {
           case 'auth/wrong-password':
             setPasswordError(err.message)
             break
+          default:
         }
       })
   }
 
-  const handleSignOut = () => {
+  const handleSignUp = () => {
+    clearErrors()
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
@@ -41,17 +56,19 @@ function App() {
           case 'auth/weak-password':
             setPasswordError(err.message)
             break
+          default:
         }
       })
   }
 
-  const handleLogout = () => {
-    firebase.auth.signOut()
+  const handleLogOut = () => {
+    firebase.auth().signOut()
   }
 
-  const outListener = () => {
+  const authListener = () => {
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
+        clearInput()
         setUser(user)
       } else {
         setUser('')
@@ -59,7 +76,34 @@ function App() {
     })
   }
 
-  return <div className='App'></div>
+  useEffect(() => {
+    authListener()
+    return () => {
+      authListener()
+    }
+  }, [user])
+
+  return (
+    <div className='App'>
+      {user ? (
+        <Hero handleLogOut={handleLogOut} />
+      ) : (
+        <Login
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          handleLogin={handleLogin}
+          handleSignUp={handleSignUp}
+          hasAccount={hasAccount}
+          sethasAccount={setHasAccount}
+          emailError={emailError}
+          passwordError={passwordError}
+          setPasswordError={setPasswordError}
+        />
+      )}
+    </div>
+  )
 }
 
 export default App
