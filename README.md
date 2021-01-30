@@ -1,4 +1,4 @@
-### Login form using firebase for authentication.
+# Login form using firebase for authentication.
 
 </br>
 </br>
